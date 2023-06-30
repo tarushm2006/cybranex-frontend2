@@ -1,12 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import "./App.css";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import {
   LoginPage,
   SignupPage,
@@ -45,12 +39,16 @@ import { getAllEvents } from "./redux/actions/event";
 import { useAccount, useConnect, useContractEvent } from "wagmi";
 import { InjectedConnector } from "wagmi/connectors/injected";
 import { abi } from "./components/abi/vendor";
+import { app } from "./firebaseconfig";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
 
 const App = () => {
   const { address, isConnected } = useAccount();
   const { connect } = useConnect({
     connector: new InjectedConnector(),
   });
+
+  const db = getFirestore(app);
 
   useContractEvent({
     address: "0x5fDf5B9cc9369e0Ec9daA749eabe4fA151D7e8B2",
@@ -60,6 +58,13 @@ const App = () => {
       console.log(_vendor, _title, parseInt(_key));
     },
   });
+
+  async function fetchdata() {
+    const querysnapshot = await getDocs(collection(db, "vouchers"));
+    querysnapshot.forEach((snapshot) => {
+      console.log(snapshot.data());
+    });
+  }
 
   useEffect(() => {
     Store.dispatch(loadUser());
@@ -77,6 +82,7 @@ const App = () => {
         payload: undefined,
       });
     }
+    fetchdata();
   }, [isConnected, address]);
 
   return (
